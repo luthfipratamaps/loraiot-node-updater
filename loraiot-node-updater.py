@@ -1,7 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton, QMessageBox, QVBoxLayout, QWidget, QFormLayout, QFileDialog, QTextEdit, QDialog, QDialogButtonBox
 from PyQt5 import QtGui
-
 import mysql.connector
 
 # Function to read the database configuration from db.conf file
@@ -13,17 +12,19 @@ def read_db_config():
                 key, value = line.strip().split('=')
                 db_config[key] = value
     except FileNotFoundError:
-        show_error_message("Error", "db.conf file not found.")
+        db_config['host'] = 'localhost'
+        db_config['user'] = 'username'
+        db_config['password'] = 'password'
+        db_config['database'] = 'database_name'
+        write_db_config(db_config)
+        show_error_message("Error", "db.conf file not found. A new db.conf file with default values has been created. Edit the file by clicking the [Edit Configuration] button.")
     return db_config
 
 # Function to write the database configuration to db.conf file
 def write_db_config(db_config):
-    try:
-        with open('db.conf', 'w') as file:
-            for key, value in db_config.items():
-                file.write(f"{key}={value}\n")
-    except Exception as e:
-        show_error_message("Error", f"Failed to update db.conf: {str(e)}")
+    with open('db.conf', 'w') as file:
+        for key, value in db_config.items():
+            file.write(f"{key}={value}\n")
 
 # Function to update data in the database
 def update_data(node_id, longitude, latitude, is_need_shade, db_config):
