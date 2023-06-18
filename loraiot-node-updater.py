@@ -1,5 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton, QMessageBox, QVBoxLayout, QWidget, QFormLayout, QFileDialog, QTextEdit, QDialog, QDialogButtonBox
+from PyQt5 import QtGui
 
 import mysql.connector
 
@@ -77,10 +78,10 @@ class NodeDataUpdaterWindow(QMainWindow):
         self.entry_is_need_shade = QLineEdit()
 
         # Add labels and input fields to the form layout
-        form_layout.addRow(QLabel("Node ID (1 to 4):", self), self.entry_node_id)
-        form_layout.addRow(QLabel("Longitude (-90 to 90):", self), self.entry_longitude)
-        form_layout.addRow(QLabel("Latitude (-180 to 180):", self), self.entry_latitude)
-        form_layout.addRow(QLabel("Is Need Shade (0 or 1):", self), self.entry_is_need_shade)
+        form_layout.addRow(QLabel("Node ID (1 to 4):"), self.entry_node_id)
+        form_layout.addRow(QLabel("Longitude (-90 to 90):"), self.entry_longitude)
+        form_layout.addRow(QLabel("Latitude (-180 to 180):"), self.entry_latitude)
+        form_layout.addRow(QLabel("Is Need Shade (0 or 1):"), self.entry_is_need_shade)
 
         # Create the update button
         self.button_update = QPushButton("Update")
@@ -172,6 +173,20 @@ class NodeDataUpdaterWindow(QMainWindow):
 
 # Create the application instance
 app = QApplication(sys.argv)
+
+# Set the application style
+app.setStyle("Fusion")
+
+# Set the application font
+font = app.font()
+font.setPointSize(10)
+app.setFont(font)
+
+# Set the application palette
+palette = app.palette()
+palette.setColor(palette.Window, QtGui.QColor(240, 240, 240))
+palette.setColor(palette.WindowText, QtGui.QColor(40, 40, 40))
+app.setPalette(palette)
 
 # Create the main window instance
 window = NodeDataUpdaterWindow()
