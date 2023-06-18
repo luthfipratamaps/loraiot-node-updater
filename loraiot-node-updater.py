@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton, QMessageBox, QVBoxLayout, QWidget, QFormLayout
 from PyQt5.QtGui import QFont
 import mysql.connector
 
@@ -39,39 +39,30 @@ class NodeDataUpdaterWindow(QMainWindow):
         self.setWindowTitle("Node Data Updater")
         self.setGeometry(100, 100, 400, 250)
 
-        # Create and position labels
-        label_node_id = QLabel("Node ID:", self)
-        label_node_id.setFont(QFont("Arial", 12))
-        label_node_id.move(30, 30)
+        # Create a central widget and a vertical layout for it
+        central_widget = QWidget(self)
+        self.setCentralWidget(central_widget)
+        layout = QVBoxLayout(central_widget)
 
-        label_longitude = QLabel("Longitude (Range: -90 to 90):", self)
-        label_longitude.setFont(QFont("Arial", 12))
-        label_longitude.move(30, 70)
+        # Create a form layout for labels and input fields
+        form_layout = QFormLayout()
+        layout.addLayout(form_layout)
 
-        label_latitude = QLabel("Latitude (Range: -180 to 180):", self)
-        label_latitude.setFont(QFont("Arial", 12))
-        label_latitude.move(30, 110)
+        # Create labels and input fields
+        self.entry_node_id = QLineEdit()
+        self.entry_longitude = QLineEdit()
+        self.entry_latitude = QLineEdit()
+        self.entry_is_need_shade = QLineEdit()
 
-        label_is_need_shade = QLabel("Is Need Shade (0 or 1):", self)
-        label_is_need_shade.setFont(QFont("Arial", 12))
-        label_is_need_shade.move(30, 150)
+        # Add labels and input fields to the form layout
+        form_layout.addRow(QLabel("Node ID (1-4):"), self.entry_node_id)
+        form_layout.addRow(QLabel("Longitude (-90 to 90):"), self.entry_longitude)
+        form_layout.addRow(QLabel("Latitude (-180 to 180):"), self.entry_latitude)
+        form_layout.addRow(QLabel("Is Need Shade (0 or 1):"), self.entry_is_need_shade)
 
-        # Create and position line edits
-        self.entry_node_id = QLineEdit(self)
-        self.entry_node_id.setGeometry(250, 30, 100, 25)
-
-        self.entry_longitude = QLineEdit(self)
-        self.entry_longitude.setGeometry(250, 70, 100, 25)
-
-        self.entry_latitude = QLineEdit(self)
-        self.entry_latitude.setGeometry(250, 110, 100, 25)
-
-        self.entry_is_need_shade = QLineEdit(self)
-        self.entry_is_need_shade.setGeometry(250, 150, 100, 25)
-
-        # Create and position the update button
-        self.button_update = QPushButton("Update", self)
-        self.button_update.setGeometry(150, 190, 100, 30)
+        # Create the update button
+        self.button_update = QPushButton("Update")
+        layout.addWidget(self.button_update)
         self.button_update.clicked.connect(self.handle_update)
 
     # Function to handle the button click event
