@@ -1,22 +1,31 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton, QMessageBox, QVBoxLayout, QWidget, QFormLayout
-from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton, QMessageBox, QVBoxLayout, QWidget, QFormLayout, QFileDialog, QTextEdit, QDialog, QDialogButtonBox
+
 import mysql.connector
 
 # Function to read the database configuration from db.conf file
 def read_db_config():
     db_config = {}
-    with open('db.conf', 'r') as file:
-        for line in file:
-            key, value = line.strip().split('=')
-            db_config[key] = value
+    try:
+        with open('db.conf', 'r') as file:
+            for line in file:
+                key, value = line.strip().split('=')
+                db_config[key] = value
+    except FileNotFoundError:
+        show_error_message("Error", "db.conf file not found.")
     return db_config
 
-# Database configuration
-db_config = read_db_config()
+# Function to write the database configuration to db.conf file
+def write_db_config(db_config):
+    try:
+        with open('db.conf', 'w') as file:
+            for key, value in db_config.items():
+                file.write(f"{key}={value}\n")
+    except Exception as e:
+        show_error_message("Error", f"Failed to update db.conf: {str(e)}")
 
 # Function to update data in the database
-def update_data(node_id, longitude, latitude, is_need_shade):
+def update_data(node_id, longitude, latitude, is_need_shade, db_config):
     try:
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
@@ -30,19 +39,27 @@ def update_data(node_id, longitude, latitude, is_need_shade):
 
         return True
     except mysql.connector.Error as error:
-        print("Error updating data:", error)
+        show_error_message("Error", f"Error updating data: {error}")
         return False
     finally:
-        if conn.is_connected():
+        if 'conn' in locals() and conn.is_connected():
             cursor.close()
             conn.close()
+
+# Function to display an error message
+def show_error_message(title, message):
+    error_dialog = QMessageBox()
+    error_dialog.setIcon(QMessageBox.Warning)
+    error_dialog.setWindowTitle(title)
+    error_dialog.setText(message)
+    error_dialog.exec_()
 
 # Create a custom QMainWindow subclass for the GUI window
 class NodeDataUpdaterWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Node Data Updater")
-        self.setGeometry(100, 100, 400, 250)
+        self.setGeometry(100, 100, 400, 300)
 
         # Create a central widget and a vertical layout for it
         central_widget = QWidget(self)
@@ -60,7 +77,7 @@ class NodeDataUpdaterWindow(QMainWindow):
         self.entry_is_need_shade = QLineEdit()
 
         # Add labels and input fields to the form layout
-        form_layout.addRow(QLabel("Node ID (1-4):", self), self.entry_node_id)
+        form_layout.addRow(QLabel("Node ID (1 to 4):", self), self.entry_node_id)
         form_layout.addRow(QLabel("Longitude (-90 to 90):", self), self.entry_longitude)
         form_layout.addRow(QLabel("Latitude (-180 to 180):", self), self.entry_latitude)
         form_layout.addRow(QLabel("Is Need Shade (0 or 1):", self), self.entry_is_need_shade)
@@ -70,41 +87,88 @@ class NodeDataUpdaterWindow(QMainWindow):
         layout.addWidget(self.button_update)
         self.button_update.clicked.connect(self.handle_update)
 
-    # Function to handle the button click event
+        # Create the edit config button
+        self.button_edit_config = QPushButton("Edit Configuration")
+        layout.addWidget(self.button_edit_config)
+        self.button_edit_config.clicked.connect(self.edit_config)
+
+        # Read the database configuration from db.conf file
+        self.db_config = read_db_config()
+
+    # Function to handle the update button click
     def handle_update(self):
+        # Get the input values
         node_id = self.entry_node_id.text()
         longitude = self.entry_longitude.text()
         latitude = self.entry_latitude.text()
         is_need_shade = self.entry_is_need_shade.text()
 
-        # Check if any input field is empty
-        if node_id == '' or longitude == '' or latitude == '' or is_need_shade == '':
-            QMessageBox.warning(self, "Error", "Please fill in all fields.")
-            return
-
         try:
-            # Convert input values to the appropriate types
+            # Validate the input values
             node_id = int(node_id)
             longitude = float(longitude)
             latitude = float(latitude)
             is_need_shade = int(is_need_shade)
 
-            # Validate input ranges
             if not (1 <= node_id <= 4):
-                QMessageBox.warning(self, "Error", "Node ID must be between 1 and 4.")
+                show_error_message("Error", "Node ID must be between 1 and 4.")
             elif not (-90 <= longitude <= 90):
-                QMessageBox.warning(self, "Error", "Longitude must be between -90 and 90.")
+                show_error_message("Error", "Longitude must be between -90 and 90.")
             elif not (-180 <= latitude <= 180):
-                QMessageBox.warning(self, "Error", "Latitude must be between -180 and 180.")
+                show_error_message("Error", "Latitude must be between -180 and 180.")
             elif is_need_shade not in [0, 1]:
-                QMessageBox.warning(self, "Error", "Is Need Shade must be either 0 or 1.")
+                show_error_message("Error", "Is Need Shade must be either 0 or 1.")
             else:
-                if update_data(node_id, longitude, latitude, is_need_shade):
+                if update_data(node_id, longitude, latitude, is_need_shade, self.db_config):
                     QMessageBox.information(self, "Success", "Data updated successfully.")
                 else:
                     QMessageBox.warning(self, "Error", "Failed to update data.")
         except ValueError:
-            QMessageBox.warning(self, "Error", "Invalid input type. Please enter numeric values.")
+            show_error_message("Error", "Invalid input type. Please enter numeric values.")
+
+    # Function to handle the edit config button click
+    def edit_config(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        file_dialog = QFileDialog()
+        file_dialog.setOptions(options)
+        file_dialog.setFileMode(QFileDialog.ExistingFile)
+        file_dialog.setNameFilter("Config files (*.conf)")
+        file_dialog.setWindowTitle("Edit Configuration")
+        if file_dialog.exec_() == QFileDialog.Accepted:
+            selected_file = file_dialog.selectedFiles()[0]
+            self.open_text_editor(selected_file)
+
+    # Function to open a text editor for the selected file
+    def open_text_editor(self, file_path):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Edit Configuration")
+
+        # Create a text edit widget
+        text_edit = QTextEdit()
+        with open(file_path, 'r') as file:
+            text_edit.setPlainText(file.read())
+
+        # Create a dialog button box
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+
+        # Create a vertical layout for the dialog
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(text_edit)
+        layout.addWidget(button_box)
+
+        # Open the dialog
+        if dialog.exec_() == QDialog.Accepted:
+            updated_config = text_edit.toPlainText()
+            try:
+                with open(file_path, 'w') as file:
+                    file.write(updated_config)
+                self.db_config = read_db_config()
+                QMessageBox.information(self, "Success", "Configuration updated successfully.")
+            except Exception as e:
+                show_error_message("Error", f"Failed to update the configuration: {str(e)}")
 
 # Create the application instance
 app = QApplication(sys.argv)
