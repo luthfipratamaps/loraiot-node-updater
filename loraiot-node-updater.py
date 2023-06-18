@@ -3,13 +3,17 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushB
 from PyQt5.QtGui import QFont
 import mysql.connector
 
+# Function to read the database configuration from db.conf file
+def read_db_config():
+    db_config = {}
+    with open('db.conf', 'r') as file:
+        for line in file:
+            key, value = line.strip().split('=')
+            db_config[key] = value
+    return db_config
+
 # Database configuration
-db_config = {
-    'host': 'localhost',
-    'user': 'luthfipratamaps',
-    'password': 'Alsin12354!',
-    'database': 'loraiot'
-}
+db_config = read_db_config()
 
 # Function to update data in the database
 def update_data(node_id, longitude, latitude, is_need_shade):
@@ -55,10 +59,10 @@ class NodeDataUpdaterWindow(QMainWindow):
         self.entry_is_need_shade = QLineEdit()
 
         # Add labels and input fields to the form layout
-        form_layout.addRow(QLabel("Node ID (1-4):"), self.entry_node_id)
-        form_layout.addRow(QLabel("Longitude (-90 to 90):"), self.entry_longitude)
-        form_layout.addRow(QLabel("Latitude (-180 to 180):"), self.entry_latitude)
-        form_layout.addRow(QLabel("Is Need Shade (0 or 1):"), self.entry_is_need_shade)
+        form_layout.addRow(QLabel("Node ID (1-4):", self), self.entry_node_id)
+        form_layout.addRow(QLabel("Longitude (-90 to 90):", self), self.entry_longitude)
+        form_layout.addRow(QLabel("Latitude (-180 to 180):", self), self.entry_latitude)
+        form_layout.addRow(QLabel("Is Need Shade (0 or 1):", self), self.entry_is_need_shade)
 
         # Create the update button
         self.button_update = QPushButton("Update")
@@ -74,27 +78,29 @@ class NodeDataUpdaterWindow(QMainWindow):
 
         # Check if any input field is empty
         if node_id == '' or longitude == '' or latitude == '' or is_need_shade == '':
-            QMessageBox.warning(self, "Error", "Please fill in all the fields.")
-        else:
-            # Validate input ranges
-            try:
-                node_id = int(node_id)
-                longitude = float(longitude)
-                latitude = float(latitude)
-                is_need_shade = int(is_need_shade)
+            QMessageBox.warning(self, "Error", "Please fill in all fields.")
+            return
 
-                if not (1 <= node_id <= 4):
-                    QMessageBox.warning(self, "Error", "Node ID must be between 1 and 4.")
-                elif not (-90 <= longitude <= 90):
-                    QMessageBox.warning(self, "Error", "Longitude must be between -90 and 90.")
-                elif not (-180 <= latitude <= 180):
-                    QMessageBox.warning(self, "Error", "Latitude must be between -180 and 180.")
-                elif is_need_shade not in [0, 1]:
-                    QMessageBox.warning(self, "Error", "Is Need Shade must be either 0 or 1.")
-                else:
-                    update_data(node_id, longitude, latitude, is_need_shade)
-            except ValueError:
-                QMessageBox.warning(self, "Error", "Invalid input type. Please enter numeric values.")
+        try:
+            # Convert input values to the appropriate types
+            node_id = int(node_id)
+            longitude = float(longitude)
+            latitude = float(latitude)
+            is_need_shade = int(is_need_shade)
+
+            # Validate input ranges
+            if not (1 <= node_id <= 4):
+                QMessageBox.warning(self, "Error", "Node ID must be between 1 and 4.")
+            elif not (-90 <= longitude <= 90):
+                QMessageBox.warning(self, "Error", "Longitude must be between -90 and 90.")
+            elif not (-180 <= latitude <= 180):
+                QMessageBox.warning(self, "Error", "Latitude must be between -180 and 180.")
+            elif is_need_shade not in [0, 1]:
+                QMessageBox.warning(self, "Error", "Is Need Shade must be either 0 or 1.")
+            else:
+                update_data(node_id, longitude, latitude, is_need_shade)
+        except ValueError:
+            QMessageBox.warning(self, "Error", "Invalid input type. Please enter numeric values.")
 
 # Create the application instance
 app = QApplication(sys.argv)
