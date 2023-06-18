@@ -44,30 +44,30 @@ class NodeDataUpdaterWindow(QMainWindow):
         label_node_id.setFont(QFont("Arial", 12))
         label_node_id.move(30, 30)
 
-        label_longitude = QLabel("Longitude:", self)
+        label_longitude = QLabel("Longitude (Range: -90 to 90):", self)
         label_longitude.setFont(QFont("Arial", 12))
         label_longitude.move(30, 70)
 
-        label_latitude = QLabel("Latitude:", self)
+        label_latitude = QLabel("Latitude (Range: -180 to 180):", self)
         label_latitude.setFont(QFont("Arial", 12))
         label_latitude.move(30, 110)
 
-        label_is_need_shade = QLabel("Is Need Shade:", self)
+        label_is_need_shade = QLabel("Is Need Shade (0 or 1):", self)
         label_is_need_shade.setFont(QFont("Arial", 12))
         label_is_need_shade.move(30, 150)
 
         # Create and position line edits
         self.entry_node_id = QLineEdit(self)
-        self.entry_node_id.setGeometry(150, 30, 200, 25)
+        self.entry_node_id.setGeometry(250, 30, 100, 25)
 
         self.entry_longitude = QLineEdit(self)
-        self.entry_longitude.setGeometry(150, 70, 200, 25)
+        self.entry_longitude.setGeometry(250, 70, 100, 25)
 
         self.entry_latitude = QLineEdit(self)
-        self.entry_latitude.setGeometry(150, 110, 200, 25)
+        self.entry_latitude.setGeometry(250, 110, 100, 25)
 
         self.entry_is_need_shade = QLineEdit(self)
-        self.entry_is_need_shade.setGeometry(150, 150, 200, 25)
+        self.entry_is_need_shade.setGeometry(250, 150, 100, 25)
 
         # Create and position the update button
         self.button_update = QPushButton("Update", self)
