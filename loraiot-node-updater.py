@@ -85,7 +85,25 @@ class NodeDataUpdaterWindow(QMainWindow):
         if node_id == '' or longitude == '' or latitude == '' or is_need_shade == '':
             QMessageBox.warning(self, "Error", "Please fill in all the fields.")
         else:
-            update_data(node_id, longitude, latitude, is_need_shade)
+            # Validate input ranges
+            try:
+                node_id = int(node_id)
+                longitude = float(longitude)
+                latitude = float(latitude)
+                is_need_shade = int(is_need_shade)
+
+                if not (1 <= node_id <= 4):
+                    QMessageBox.warning(self, "Error", "Node ID must be between 1 and 4.")
+                elif not (-90 <= longitude <= 90):
+                    QMessageBox.warning(self, "Error", "Longitude must be between -90 and 90.")
+                elif not (-180 <= latitude <= 180):
+                    QMessageBox.warning(self, "Error", "Latitude must be between -180 and 180.")
+                elif is_need_shade not in [0, 1]:
+                    QMessageBox.warning(self, "Error", "Is Need Shade must be either 0 or 1.")
+                else:
+                    update_data(node_id, longitude, latitude, is_need_shade)
+            except ValueError:
+                QMessageBox.warning(self, "Error", "Invalid input type. Please enter numeric values.")
 
 # Create the application instance
 app = QApplication(sys.argv)
