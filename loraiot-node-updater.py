@@ -28,9 +28,10 @@ def update_data(node_id, longitude, latitude, is_need_shade):
         cursor.execute(sql, data)
         conn.commit()
 
-        print("Data updated successfully!")
+        return True
     except mysql.connector.Error as error:
         print("Error updating data:", error)
+        return False
     finally:
         if conn.is_connected():
             cursor.close()
@@ -98,7 +99,10 @@ class NodeDataUpdaterWindow(QMainWindow):
             elif is_need_shade not in [0, 1]:
                 QMessageBox.warning(self, "Error", "Is Need Shade must be either 0 or 1.")
             else:
-                update_data(node_id, longitude, latitude, is_need_shade)
+                if update_data(node_id, longitude, latitude, is_need_shade):
+                    QMessageBox.information(self, "Success", "Data updated successfully.")
+                else:
+                    QMessageBox.warning(self, "Error", "Failed to update data.")
         except ValueError:
             QMessageBox.warning(self, "Error", "Invalid input type. Please enter numeric values.")
 
