@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QPushButton, QMessageBox
 from PyQt5.QtGui import QFont
 import mysql.connector
 
@@ -70,9 +70,9 @@ class NodeDataUpdaterWindow(QMainWindow):
         self.entry_is_need_shade.setGeometry(150, 150, 200, 25)
 
         # Create and position the update button
-        button_update = QPushButton("Update", self)
-        button_update.setGeometry(150, 190, 100, 30)
-        button_update.clicked.connect(self.handle_update)
+        self.button_update = QPushButton("Update", self)
+        self.button_update.setGeometry(150, 190, 100, 30)
+        self.button_update.clicked.connect(self.handle_update)
 
     # Function to handle the button click event
     def handle_update(self):
@@ -81,7 +81,11 @@ class NodeDataUpdaterWindow(QMainWindow):
         latitude = self.entry_latitude.text()
         is_need_shade = self.entry_is_need_shade.text()
 
-        update_data(node_id, longitude, latitude, is_need_shade)
+        # Check if any input field is empty
+        if node_id == '' or longitude == '' or latitude == '' or is_need_shade == '':
+            QMessageBox.warning(self, "Error", "Please fill in all the fields.")
+        else:
+            update_data(node_id, longitude, latitude, is_need_shade)
 
 # Create the application instance
 app = QApplication(sys.argv)
