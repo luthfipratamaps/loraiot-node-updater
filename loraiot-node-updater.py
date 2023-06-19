@@ -13,6 +13,7 @@ def read_db_config():
                 db_config[key] = value
     except FileNotFoundError:
         db_config['host'] = 'localhost'
+        db_config['port'] = '1883'
         db_config['user'] = 'username'
         db_config['password'] = 'password'
         db_config['database'] = 'database_name'
@@ -47,6 +48,7 @@ def update_data(node_id, longitude, latitude, is_need_shade, db_config):
         if 'conn' in locals() and conn.is_connected():
             cursor.close()
             conn.close()
+
 
 # Function to display an error message
 def show_error_message(title, message):

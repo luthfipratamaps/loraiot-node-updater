@@ -1,4 +1,5 @@
 host=your_host
+port=your_port
 user=your_user
 password=your_pass
 database=your_database
